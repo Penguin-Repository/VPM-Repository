@@ -16,6 +16,8 @@ from typing import Any
 
 PACKAGE_NAME = "jp.penguin.purebase"
 SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+EXPECTED_LICENSE = "Apache-2.0"
+LICENSE_PATH = "LICENSE"
 VPM_PATH = Path("vpm.json")
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 MAX_PACKAGE_JSON_BYTES = 1024 * 1024
@@ -59,6 +61,10 @@ def expected_urls(version: str) -> tuple[str, str, str]:
     return asset_name, package_url, release_url
 
 
+def immutable_source_url(commit_sha: str, path: str) -> str:
+    return f"https://github.com/{SOURCE_REPOSITORY}/blob/{commit_sha}/{path}"
+
+
 def validate_payload() -> dict[str, str]:
     package_name = required_env("PACKAGE_NAME")
     source_repository = required_env("SOURCE_REPOSITORY")
@@ -94,15 +100,18 @@ def validate_payload() -> dict[str, str]:
             f"{trusted_release_url}"
         )
 
+    normalized_commit_sha = commit_sha.lower()
     return {
         "package_name": package_name,
         "source_repository": source_repository,
         "version": version,
-        "commit_sha": commit_sha.lower(),
+        "commit_sha": normalized_commit_sha,
         "asset_name": asset_name,
         "package_url": package_url,
         "expected_sha256": expected_sha256,
         "release_url": trusted_release_url,
+        "changelog_url": trusted_release_url,
+        "licenses_url": immutable_source_url(normalized_commit_sha, LICENSE_PATH),
     }
 
 
@@ -143,7 +152,18 @@ def is_unsafe_zip_path(name: str) -> bool:
     )
 
 
-def load_manifest(archive_path: Path, payload: dict[str, str], actual_sha256: str) -> dict[str, Any]:
+def validate_optional_url(
+    manifest: dict[str, Any], field: str, expected: str
+) -> None:
+    value = manifest.get(field)
+    if value not in (None, "", expected):
+        raise UpdateError(f"package.json contains an unexpected {field}: {value!r}.")
+    manifest[field] = expected
+
+
+def load_manifest(
+    archive_path: Path, payload: dict[str, str], actual_sha256: str
+) -> dict[str, Any]:
     if not zipfile.is_zipfile(archive_path):
         raise UpdateError("Downloaded release asset is not a valid ZIP archive.")
 
@@ -185,11 +205,17 @@ def load_manifest(archive_path: Path, payload: dict[str, str], actual_sha256: st
         raise UpdateError(
             f"package.json version {manifest.get('version')!r} does not match the dispatch payload."
         )
+    if manifest.get("license") != EXPECTED_LICENSE:
+        raise UpdateError(
+            f"package.json license must be {EXPECTED_LICENSE!r}, received {manifest.get('license')!r}."
+        )
 
     embedded_url = manifest.get("url")
     if embedded_url not in (None, "", payload["package_url"]):
         raise UpdateError(f"package.json contains an unexpected download URL: {embedded_url!r}.")
 
+    validate_optional_url(manifest, "changelogUrl", payload["changelog_url"])
+    validate_optional_url(manifest, "licensesUrl", payload["licenses_url"])
     manifest["url"] = payload["package_url"]
     manifest["zipSHA256"] = actual_sha256
     return manifest
@@ -280,6 +306,8 @@ def main() -> int:
             f"- Package: `{payload['package_name']}`",
             f"- Version: `{payload['version']}`",
             f"- Source: `{payload['source_repository']}@{payload['commit_sha']}`",
+            f"- Changelog: {payload['changelog_url']}",
+            f"- License: {payload['licenses_url']}",
             f"- SHA-256: `{payload['expected_sha256']}`",
             f"- Result: `{'updated' if changed else 'already current'}`",
         ]
