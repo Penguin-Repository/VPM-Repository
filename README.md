@@ -17,11 +17,19 @@ https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/v
 1. accepts only `jp.penguin.purebase` from `PenguinDOOM/Pure-Base`;
 2. validates the version, tag, source commit, release URL, and asset URL;
 3. downloads the release ZIP and verifies its SHA-256 against the dispatch payload;
-4. validates the root `package.json` name and version;
-5. adds the package URL and `zipSHA256` to the manifest;
-6. appends a new immutable version to `vpm.json` and commits it.
+4. validates the root `package.json` name, version, and Apache-2.0 license;
+5. preserves package metadata such as `displayName`, `author`, `unity`, `description`, `vpmDependencies`, `keywords`, and `legacyFolders`;
+6. adds the immutable package URL, `zipSHA256`, release-page `changelogUrl`, and commit-pinned `licensesUrl`;
+7. appends a new immutable version to `vpm.json` and commits it.
 
 A repeated dispatch for identical metadata is a no-op. A repeated version with different metadata fails instead of replacing a published version.
+
+For each Pure Base version, generated links use:
+
+- `changelogUrl`: the matching GitHub Release page;
+- `licensesUrl`: `LICENSE` at the exact dispatched release commit.
+
+This keeps historical metadata stable even if the default branch changes later.
 
 ## Required Pure Base configuration
 
