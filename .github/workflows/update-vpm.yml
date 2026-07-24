@@ -53,12 +53,13 @@ jobs:
       VERSION: ${{ github.event.client_payload.version || inputs.version }}
       TAG: ${{ github.event.client_payload.tag || inputs.version }}
       COMMIT_SHA: ${{ github.event.client_payload.commitSha || inputs.commit_sha }}
-      # packageUrl is the canonical field; packageurl remains as a legacy fallback.
+      # packageUrl is canonical; packageurl remains as a legacy fallback.
       PACKAGE_URL: ${{ github.event.client_payload.packageUrl || github.event.client_payload.packageurl || inputs.package_url }}
       EXPECTED_SHA256: ${{ github.event.client_payload.sha256 || inputs.sha256 }}
       RELEASE_URL: ${{ github.event.client_payload.releaseUrl || inputs.release_url }}
       SOURCE_REPOSITORY: ${{ github.event.client_payload.sourceRepository || inputs.source_repository }}
       TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+      GITHUB_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout VPM repository
@@ -67,12 +68,19 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: true
 
-      - name: Verify receiver script
-        run: python3 -m py_compile .github/scripts/update_vpm.py
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Verify receiver and unit tests
+        run: |
+          python -m compileall -q .github/scripts .github/tests
+          python -m unittest discover -s .github/tests -p "test_*.py" -v
 
       - name: Validate dispatch and update listing
         id: update
-        run: python3 .github/scripts/update_vpm.py
+        run: python .github/scripts/update_vpm.py
 
       - name: Commit and push listing
         if: steps.update.outputs.changed == 'true'
