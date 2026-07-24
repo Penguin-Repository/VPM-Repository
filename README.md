@@ -51,9 +51,11 @@ The `update-vpm` event uses this `client_payload` contract:
 | `version` | Stable semantic version |
 | `tag` | Must equal `version` |
 | `commitSha` | Source release commit SHA |
-| `packageurl` | Immutable release ZIP URL |
+| `packageUrl` | Immutable release ZIP URL |
 | `sha256` | SHA-256 of the release ZIP |
 | `releaseUrl` | Published GitHub Release URL |
 | `sourceRepository` | `PenguinDOOM/Pure-Base` |
+
+`packageUrl` is the canonical field. The receiver temporarily accepts the legacy `packageurl` spelling so releases from the previous sender contract can still be reprocessed safely.
 
 The workflow also exposes equivalent manual inputs for recovery or controlled reprocessing.
