@@ -10,6 +10,11 @@ Use this listing URL in VRChat Creator Companion or a compatible VPM client:
 https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json
 ```
 
+Alternatively, you can add it by pasting the following URL into your browser and opening it.
+```text
+vcc://vpm/addRepo?url=https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json
+```
+
 ## Pure Base release flow
 
 `PenguinDOOM/Pure-Base` publishes an immutable GitHub Release and sends an `update-vpm` `repository_dispatch` event to this repository. The receiver then:
