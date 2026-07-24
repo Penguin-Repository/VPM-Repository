@@ -1,0 +1,7 @@
+{
+  "name": "Penguin VPM Repository",
+  "id": "jp.penguin.vpm",
+  "url": "https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json",
+  "author": "Penguin",
+  "packages": {}
+}

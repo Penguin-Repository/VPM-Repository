@@ -1,0 +1,39 @@
+name: VPM receiver tests
+
+on:
+  pull_request:
+    paths:
+      - .github/scripts/**
+      - .github/tests/**
+      - .github/workflows/receiver-tests.yml
+      - .github/workflows/update-vpm.yml
+  push:
+    branches: [master]
+    paths:
+      - .github/scripts/**
+      - .github/tests/**
+      - .github/workflows/receiver-tests.yml
+      - .github/workflows/update-vpm.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python 3.12 unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Compile receiver modules
+        run: python -m compileall -q .github/scripts .github/tests
+
+      - name: Run receiver unit tests
+        run: python -m unittest discover -s .github/tests -p "test_*.py" -v
