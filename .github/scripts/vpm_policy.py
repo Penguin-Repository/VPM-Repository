@@ -59,12 +59,13 @@ def load_yank_policy(raw: bytes) -> dict[str, Any]:
 
 
 def decode_policy_content(response: Mapping[str, Any], ref: str) -> bytes:
-    """Decode the fixed-path GitHub contents response for one immutable ref."""
+    """Decode one fixed-path Contents response, allowing only API CR/LF wrapping."""
     content = response.get("content")
     if response.get("encoding") != "base64" or not isinstance(content, str):
         raise UpdateError(f"GitHub API returned invalid yank policy content for {ref}.")
     try:
-        return base64.b64decode(content.encode("ascii"), validate=True)
+        encoded_content = content.replace("\r", "").replace("\n", "")
+        return base64.b64decode(encoded_content.encode("ascii"), validate=True)
     except (UnicodeEncodeError, ValueError) as error:
         raise UpdateError(f"GitHub API returned invalid base64 yank policy content for {ref}.") from error
 
