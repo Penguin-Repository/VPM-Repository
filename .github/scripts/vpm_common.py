@@ -16,11 +16,6 @@ LICENSE_PATH = "LICENSE"
 VPM_PATH = Path("vpm.json")
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 MAX_PACKAGE_JSON_BYTES = 1024 * 1024
-SEMVER_RE = re.compile(
-    r"^(?P<major>0|[1-9][0-9]*)\.(?P<minor>0|[1-9][0-9]*)\."
-    r"(?P<patch>0|[1-9][0-9]*)(?:-(?P<prerelease>"
-    r"[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
-)
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
@@ -72,14 +67,23 @@ def parse_semver(version: str) -> SemanticVersion:
     """Parse a strict ASCII SemVer 2 core and prerelease value."""
     if not isinstance(version, str) or not version.isascii():
         raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
-    match = SEMVER_RE.fullmatch(version)
-    if not match:
+
+    core_text, separator, prerelease_text = version.partition("-")
+    core_identifiers = core_text.split(".")
+    if len(core_identifiers) != 3 or any(
+        not identifier.isdecimal()
+        or (len(identifier) > 1 and identifier.startswith("0"))
+        for identifier in core_identifiers
+    ):
         raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
 
-    prerelease_text = match.group("prerelease")
     prerelease: list[tuple[int, int | str]] = []
-    if prerelease_text is not None:
+    if separator:
+        if not prerelease_text:
+            raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
         for identifier in prerelease_text.split("."):
+            if not identifier or not all(character.isalnum() or character == "-" for character in identifier):
+                raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
             if identifier.isdecimal():
                 if len(identifier) > 1 and identifier.startswith("0"):
                     raise UpdateError(
@@ -90,10 +94,10 @@ def parse_semver(version: str) -> SemanticVersion:
                 prerelease.append((1, identifier))
 
     return SemanticVersion(
-        int(match.group("major")),
-        int(match.group("minor")),
-        int(match.group("patch")),
-        tuple(prerelease) if prerelease_text is not None else None,
+        int(core_identifiers[0]),
+        int(core_identifiers[1]),
+        int(core_identifiers[2]),
+        tuple(prerelease) if separator else None,
     )
 
 

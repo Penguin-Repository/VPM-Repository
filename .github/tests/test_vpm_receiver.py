@@ -139,6 +139,12 @@ class SemVerTests(unittest.TestCase):
             with self.subTest(contract_id=contract_id), self.assertRaises(UpdateError):
                 version_key(version)
 
+    def test_rejects_long_malformed_prerelease(self) -> None:
+        from vpm_common import version_key
+
+        with self.assertRaises(UpdateError):
+            version_key("0.1.0-" + "a." * 20_000)
+
     def test_orders_shared_semver_vectors(self) -> None:
         from vpm_common import version_key
 
