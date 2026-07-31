@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from functools import total_ordering
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -15,8 +16,10 @@ LICENSE_PATH = "LICENSE"
 VPM_PATH = Path("vpm.json")
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 MAX_PACKAGE_JSON_BYTES = 1024 * 1024
-STABLE_VERSION_RE = re.compile(
-    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+SEMVER_RE = re.compile(
+    r"^(?P<major>0|[1-9][0-9]*)\.(?P<minor>0|[1-9][0-9]*)\."
+    r"(?P<patch>0|[1-9][0-9]*)(?:-(?P<prerelease>"
+    r"[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 )
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
@@ -24,6 +27,74 @@ COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 class UpdateError(RuntimeError):
     """Raised when dispatch data or package content cannot be trusted."""
+
+
+@total_ordering
+class SemanticVersion:
+    """An immutable SemVer 2 version without build metadata."""
+
+    def __init__(
+        self,
+        major: int,
+        minor: int,
+        patch: int,
+        prerelease: tuple[tuple[int, int | str], ...] | None,
+    ) -> None:
+        self._core = (major, minor, patch)
+        self._prerelease = prerelease
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented
+        return self._core == other._core and self._prerelease == other._prerelease
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented
+        if self._core != other._core:
+            return self._core < other._core
+        if self._prerelease is None:
+            return False
+        if other._prerelease is None:
+            return True
+        for self_identifier, other_identifier in zip(
+            self._prerelease, other._prerelease
+        ):
+            if self_identifier == other_identifier:
+                continue
+            if self_identifier[0] != other_identifier[0]:
+                return self_identifier[0] < other_identifier[0]
+            return self_identifier[1] < other_identifier[1]
+        return len(self._prerelease) < len(other._prerelease)
+
+
+def parse_semver(version: str) -> SemanticVersion:
+    """Parse a strict ASCII SemVer 2 core and prerelease value."""
+    if not isinstance(version, str) or not version.isascii():
+        raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+    match = SEMVER_RE.fullmatch(version)
+    if not match:
+        raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+
+    prerelease_text = match.group("prerelease")
+    prerelease: list[tuple[int, int | str]] = []
+    if prerelease_text is not None:
+        for identifier in prerelease_text.split("."):
+            if identifier.isdecimal():
+                if len(identifier) > 1 and identifier.startswith("0"):
+                    raise UpdateError(
+                        f"Repository contains an unsupported version key: {version!r}."
+                    )
+                prerelease.append((0, int(identifier)))
+            else:
+                prerelease.append((1, identifier))
+
+    return SemanticVersion(
+        int(match.group("major")),
+        int(match.group("minor")),
+        int(match.group("patch")),
+        tuple(prerelease) if prerelease_text is not None else None,
+    )
 
 
 def required_value(values: Mapping[str, str], name: str) -> str:
@@ -47,9 +118,23 @@ def reject_non_finite_constant(value: str) -> None:
     raise ValueError(f"Non-finite JSON constant is not allowed: {value}")
 
 
+def reject_duplicate_object_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build one JSON object while rejecting duplicate object keys."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate JSON object key is not allowed: {key!r}")
+        result[key] = value
+    return result
+
+
 def strict_json_loads(text: str) -> Any:
-    """Parse standards-compliant JSON and reject non-finite constants."""
-    return json.loads(text, parse_constant=reject_non_finite_constant)
+    """Parse standards-compliant JSON with unique keys and finite values."""
+    return json.loads(
+        text,
+        object_pairs_hook=reject_duplicate_object_keys,
+        parse_constant=reject_non_finite_constant,
+    )
 
 
 def strict_json_dumps(value: Any) -> str:
@@ -73,9 +158,6 @@ def immutable_source_url(commit_sha: str, path: str) -> str:
     return f"https://github.com/{SOURCE_REPOSITORY}/blob/{commit_sha}/{path}"
 
 
-def version_key(version: str) -> tuple[int, int, int]:
-    """Convert a stable semantic version into a sortable tuple."""
-    match = STABLE_VERSION_RE.fullmatch(version)
-    if not match:
-        raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
-    return tuple(int(part) for part in match.groups())
+def version_key(version: str) -> SemanticVersion:
+    """Return a sortable strict SemVer 2 value for a version string."""
+    return parse_semver(version)

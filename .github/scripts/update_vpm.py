@@ -10,8 +10,9 @@ from pathlib import Path
 
 from vpm_archive import download_archive, load_manifest, verify_archive_sha256
 from vpm_common import UpdateError, VPM_PATH
-from vpm_listing import load_listing, update_listing, write_listing
+from vpm_listing import apply_yank_policy, load_listing, update_listing, write_listing
 from vpm_payload import validate_payload, verify_release_commit
+from vpm_policy import fetch_yank_policy_snapshot
 
 
 def write_output(name: str, value: str) -> None:
@@ -34,6 +35,7 @@ def process_update() -> tuple[dict[str, str], bool, str]:
     """Run the trusted release verification and immutable listing update."""
     payload = validate_payload()
     verify_release_commit(payload)
+    yank_policy = fetch_yank_policy_snapshot(payload["policy_commit_sha"])
 
     with tempfile.TemporaryDirectory(prefix="vpm-update-") as temporary_directory:
         archive_path = Path(temporary_directory) / payload["asset_name"]
@@ -42,7 +44,9 @@ def process_update() -> tuple[dict[str, str], bool, str]:
         manifest = load_manifest(archive_path, payload, actual_sha256)
 
     listing = load_listing(VPM_PATH)
-    changed = update_listing(listing, manifest)
+    added = update_listing(listing, manifest)
+    yanks_changed = apply_yank_policy(listing, yank_policy)
+    changed = added or yanks_changed
     if changed:
         write_listing(VPM_PATH, listing)
     return payload, changed, actual_sha256

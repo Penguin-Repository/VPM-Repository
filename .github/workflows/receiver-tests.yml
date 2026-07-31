@@ -7,6 +7,7 @@ on:
       - .github/tests/**
       - .github/workflows/receiver-tests.yml
       - .github/workflows/update-vpm.yml
+      - .github/workflows/sync-vpm-yanks.yml
   push:
     branches: [master]
     paths:
@@ -14,6 +15,7 @@ on:
       - .github/tests/**
       - .github/workflows/receiver-tests.yml
       - .github/workflows/update-vpm.yml
+      - .github/workflows/sync-vpm-yanks.yml
 
 permissions:
   contents: read
