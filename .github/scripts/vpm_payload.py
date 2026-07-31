@@ -14,10 +14,10 @@ from vpm_common import (
     PACKAGE_NAME,
     SHA256_RE,
     SOURCE_REPOSITORY,
-    STABLE_VERSION_RE,
     UpdateError,
     expected_urls,
     immutable_source_url,
+    parse_semver,
     required_value,
     strict_json_loads,
 )
@@ -35,6 +35,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
     version = required_value(source, "VERSION")
     tag = required_value(source, "TAG")
     commit_sha = required_value(source, "COMMIT_SHA")
+    policy_commit_sha = required_value(source, "POLICY_COMMIT_SHA")
     package_url = required_value(source, "PACKAGE_URL")
     expected_sha256 = required_value(source, "EXPECTED_SHA256").lower()
     release_url = required_value(source, "RELEASE_URL")
@@ -43,12 +44,13 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
         raise UpdateError(f"Unsupported packageName: {package_name!r}.")
     if source_repository != SOURCE_REPOSITORY:
         raise UpdateError(f"Unsupported sourceRepository: {source_repository!r}.")
-    if not STABLE_VERSION_RE.fullmatch(version):
-        raise UpdateError(f"Only stable semantic versions are accepted: {version!r}.")
+    parse_semver(version)
     if tag != version:
         raise UpdateError(f"tag {tag!r} does not match version {version!r}.")
     if not COMMIT_RE.fullmatch(commit_sha):
         raise UpdateError("commitSha must be a 40-character hexadecimal Git commit SHA.")
+    if not COMMIT_RE.fullmatch(policy_commit_sha):
+        raise UpdateError("policyCommitSha must be a 40-character hexadecimal Git commit SHA.")
     if not SHA256_RE.fullmatch(expected_sha256):
         raise UpdateError("sha256 must be a 64-character hexadecimal SHA-256 value.")
 
@@ -58,7 +60,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
             "packageUrl does not match the immutable Pure Base release asset URL: "
             f"{trusted_package_url}"
         )
-    if release_url.rstrip("/") != trusted_release_url:
+    if release_url != trusted_release_url:
         raise UpdateError(
             "releaseUrl does not match the expected Pure Base release URL: "
             f"{trusted_release_url}"
@@ -66,10 +68,11 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
 
     normalized_commit_sha = commit_sha.lower()
     return {
-        "package_name": package_name,
-        "source_repository": source_repository,
+        "package_name": PACKAGE_NAME,
+        "source_repository": SOURCE_REPOSITORY,
         "version": version,
         "commit_sha": normalized_commit_sha,
+        "policy_commit_sha": policy_commit_sha.lower(),
         "asset_name": asset_name,
         "package_url": package_url,
         "expected_sha256": expected_sha256,
@@ -141,7 +144,7 @@ def verify_release_commit(
 ) -> None:
     """Confirm the released tag resolves to the dispatched source commit."""
     actual_commit = resolve_tag_commit(
-        payload["source_repository"], payload["version"], api_get=api_get
+        SOURCE_REPOSITORY, payload["version"], api_get=api_get
     )
     if actual_commit != payload["commit_sha"]:
         raise UpdateError(
