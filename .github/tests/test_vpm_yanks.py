@@ -203,6 +203,39 @@ class YankPolicyFetchTests(unittest.TestCase):
         self.assertNotIn("repository", parameters)
         self.assertNotIn("branch", parameters)
 
+    def test_accepts_line_wrapped_github_base64_policy_content(self) -> None:
+        from vpm_policy import fetch_yank_policy_snapshot
+
+        raw = policy_document({VERSION: "same desired state"})
+        encoded = base64.b64encode(raw).decode("ascii")
+        line_wrapped = "\r\n".join(
+            encoded[offset : offset + 60] for offset in range(0, len(encoded), 60)
+        )
+
+        def api_get(url: str) -> dict[str, object]:
+            if "/compare/" in url:
+                return {"status": "ahead"}
+            if f"ref={COMMIT_SHA}" in url or "ref=master" in url:
+                return {"content": line_wrapped, "encoding": "base64"}
+            return {"sha": CURRENT_COMMIT_SHA}
+
+        policy = fetch_yank_policy_snapshot(COMMIT_SHA, api_get=api_get)
+
+        self.assertEqual(policy["versions"], {VERSION: "same desired state"})
+
+    def test_rejects_base64_content_with_non_api_whitespace_characters(self) -> None:
+        from vpm_policy import decode_policy_content
+
+        encoded = base64.b64encode(policy_document()).decode("ascii")
+        invalid_contents = (
+            encoded[:8] + "@" + encoded[8:],
+            encoded[:8] + "\t" + encoded[8:],
+        )
+
+        for content in invalid_contents:
+            with self.subTest(content=content), self.assertRaises(UpdateError):
+                decode_policy_content({"content": content, "encoding": "base64"}, COMMIT_SHA)
+
     def test_rejects_invalid_policy_commit_before_github_api_access(self) -> None:
         from vpm_policy import fetch_yank_policy_snapshot
 
