@@ -11,7 +11,7 @@ from typing import Any, Mapping
 
 PACKAGE_NAME = "jp.penguin.purebase"
 SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
-LEGACY_SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+LEGACY_SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
 TRUSTED_SOURCE_REPOSITORIES = frozenset((SOURCE_REPOSITORY, LEGACY_SOURCE_REPOSITORY))
 EXPECTED_LICENSE = "Apache-2.0"
 LICENSE_PATH = "LICENSE"

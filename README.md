@@ -1,27 +1,27 @@
 # Penguin VPM Repository
 
-VPM package listing for PenguinDOOM projects.
+VPM package listing for Penguin-Repository projects.
 
 ## Add the repository
 
 Use this listing URL in VRChat Creator Companion or a compatible VPM client:
 
 ```text
-https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json
+https://raw.githubusercontent.com/Penguin-Repository/VPM-Repository/refs/heads/master/vpm.json
 ```
 
 Alternatively, you can add it by pasting the following URL into your browser and opening it.
 ```text
-vcc://vpm/addRepo?url=https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json
+vcc://vpm/addRepo?url=https://raw.githubusercontent.com/Penguin-Repository/VPM-Repository/refs/heads/master/vpm.json
 ```
 
 Pure Base uses two separate receiver dispatches: `update-vpm` adds a published package release, while `sync-vpm-yanks` projects the fixed yank policy without release or archive processing.
 
 ## Pure Base release flow
 
-`PenguinDOOM/Pure-Base` publishes an immutable GitHub Release and sends an `update-vpm` `repository_dispatch` event to this repository. The receiver then:
+`Penguin-Repository/Pure-Base` publishes an immutable GitHub Release and sends an `update-vpm` `repository_dispatch` event to this repository. The receiver then:
 
-1. accepts only `jp.penguin.purebase` from `PenguinDOOM/Pure-Base`;
+1. accepts only `jp.penguin.purebase` from `Penguin-Repository/Pure-Base`;
 2. validates the version, tag, source commit, release URL, and asset URL;
 3. downloads the release ZIP and verifies its SHA-256 against the dispatch payload;
 4. validates the root `package.json` name, version, and Apache-2.0 license;
@@ -44,9 +44,9 @@ This keeps historical metadata stable even if the default branch changes later.
 
 ## Required Pure Base configuration
 
-Configure the following in `PenguinDOOM/Pure-Base`:
+Configure the following in `Penguin-Repository/Pure-Base`:
 
-- Repository variable `VPM_REPOSITORY`: `PenguinDOOM/VPM-Repository`
+- Repository variable `VPM_REPOSITORY`: `Penguin-Repository/VPM-Repository`
 - Release-environment secrets `APP_CLIENT_ID` and `APP_PRIVATE_KEY`
 - A GitHub App installation that can write contents in both repositories
 
@@ -65,7 +65,7 @@ The `update-vpm` event uses this `client_payload` contract:
 | `packageUrl` | Immutable release ZIP URL |
 | `sha256` | SHA-256 of the release ZIP |
 | `releaseUrl` | Published GitHub Release URL |
-| `sourceRepository` | `PenguinDOOM/Pure-Base` |
+| `sourceRepository` | `Penguin-Repository/Pure-Base` |
 | `policyCommitSha` | Commit SHA for the Pure Base `vpm-yanks.json` policy |
 
 `packageUrl` is the canonical field. The receiver temporarily accepts the legacy `packageurl` spelling so releases from the previous sender contract can still be reprocessed safely.
@@ -74,14 +74,14 @@ The workflow also exposes equivalent manual inputs for recovery or controlled re
 
 ## Yank synchronization
 
-The `sync-vpm-yanks` `repository_dispatch` event is policy-only. It reads only `vpm-yanks.json` from the fixed `PenguinDOOM/Pure-Base` `master` branch and calls the policy synchronization entrypoint; it does not download a release archive or add release metadata.
+The `sync-vpm-yanks` `repository_dispatch` event is policy-only. It reads only `vpm-yanks.json` from the fixed `Penguin-Repository/Pure-Base` `master` branch and calls the policy synchronization entrypoint; it does not download a release archive or add release metadata.
 
 Its `client_payload` contract is:
 
 | Field | Meaning |
 | --- | --- |
 | `packageName` | `jp.penguin.purebase` |
-| `sourceRepository` | `PenguinDOOM/Pure-Base` |
+| `sourceRepository` | `Penguin-Repository/Pure-Base` |
 | `policyCommitSha` | 40-character commit SHA for the policy snapshot |
 
 Manual recovery uses the constrained inputs `package_name`, `source_repository`, and `policy_commit_sha`. The policy path (`vpm-yanks.json`) and policy branch (`master`) are fixed in the receiver and cannot be supplied by the event or a manual run.
