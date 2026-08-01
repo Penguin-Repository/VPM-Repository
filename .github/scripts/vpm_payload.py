@@ -86,7 +86,7 @@ def github_api_get(url: str) -> dict[str, Any]:
     """Read one GitHub REST JSON object using the workflow token when available."""
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "PenguinDOOM-VPM-Repository-Actions",
+        "User-Agent": "Penguin-Repository-VPM-Repository-Actions",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     token = os.environ.get("GITHUB_TOKEN", "").strip()

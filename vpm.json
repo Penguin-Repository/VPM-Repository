@@ -1,7 +1,7 @@
 {
   "name": "Penguin VPM Repository",
   "id": "jp.penguin.vpm",
-  "url": "https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json",
+  "url": "https://raw.githubusercontent.com/Penguin-Repository/VPM-Repository/refs/heads/master/vpm.json",
   "author": "Penguin",
   "packages": {
     "jp.penguin.purebase": {

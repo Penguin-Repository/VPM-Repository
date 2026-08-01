@@ -27,7 +27,7 @@ def download_archive(url: str, destination: Path) -> str:
         url,
         headers={
             "Accept": "application/octet-stream",
-            "User-Agent": "PenguinDOOM-VPM-Repository-Actions",
+            "User-Agent": "Penguin-Repository-VPM-Repository-Actions",
         },
     )
     digest = hashlib.sha256()

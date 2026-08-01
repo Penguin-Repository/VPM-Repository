@@ -20,7 +20,7 @@ sys.path.insert(0, str(SCRIPTS))
 from vpm_common import UpdateError  # noqa: E402
 
 PACKAGE_NAME = "jp.penguin.purebase"
-SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
 POLICY_PATH = "vpm-yanks.json"
 COMMIT_SHA = "a" * 40
 CURRENT_COMMIT_SHA = "b" * 40

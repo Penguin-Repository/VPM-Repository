@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 PACKAGE_NAME = "jp.penguin.purebase"
-SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
 EXPECTED_LICENSE = "Apache-2.0"
 LICENSE_PATH = "LICENSE"
 VPM_PATH = Path("vpm.json")

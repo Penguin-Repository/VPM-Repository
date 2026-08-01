@@ -37,7 +37,7 @@ on:
       source_repository:
         description: Source repository in owner/name form
         required: true
-        default: PenguinDOOM/Pure-Base
+        default: Penguin-Repository/Pure-Base
         type: string
 
 permissions:

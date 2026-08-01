@@ -13,7 +13,7 @@ on:
       source_repository:
         description: Fixed Pure Base source repository
         required: true
-        default: PenguinDOOM/Pure-Base
+        default: Penguin-Repository/Pure-Base
         type: string
       policy_commit_sha:
         description: Pure Base vpm-yanks.json policy commit SHA

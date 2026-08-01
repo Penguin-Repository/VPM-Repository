@@ -36,10 +36,10 @@ OTHER_COMMIT_SHA = "b" * 40
 DIGEST = "c" * 64
 VERSION = "0.2.0"
 PACKAGE_URL = (
-    "https://github.com/PenguinDOOM/Pure-Base/releases/download/"
+    "https://github.com/Penguin-Repository/Pure-Base/releases/download/"
     f"{VERSION}/jp.penguin.purebase-{VERSION}.zip"
 )
-RELEASE_URL = f"https://github.com/PenguinDOOM/Pure-Base/releases/tag/{VERSION}"
+RELEASE_URL = f"https://github.com/Penguin-Repository/Pure-Base/releases/tag/{VERSION}"
 
 
 def valid_payload(
@@ -48,13 +48,13 @@ def valid_payload(
 ) -> dict[str, str]:
     asset_name = f"jp.penguin.purebase-{version}.zip"
     package_url = (
-        "https://github.com/PenguinDOOM/Pure-Base/releases/download/"
+        "https://github.com/Penguin-Repository/Pure-Base/releases/download/"
         f"{version}/{asset_name}"
     )
-    release_url = f"https://github.com/PenguinDOOM/Pure-Base/releases/tag/{version}"
+    release_url = f"https://github.com/Penguin-Repository/Pure-Base/releases/tag/{version}"
     return {
         "package_name": "jp.penguin.purebase",
-        "source_repository": "PenguinDOOM/Pure-Base",
+        "source_repository": "Penguin-Repository/Pure-Base",
         "version": version,
         "commit_sha": COMMIT_SHA,
         "policy_commit_sha": policy_commit_sha,
@@ -64,7 +64,7 @@ def valid_payload(
         "release_url": release_url,
         "changelog_url": release_url,
         "licenses_url": (
-            "https://github.com/PenguinDOOM/Pure-Base/blob/"
+            "https://github.com/Penguin-Repository/Pure-Base/blob/"
             f"{COMMIT_SHA}/LICENSE"
         ),
     }
@@ -185,7 +185,7 @@ class PayloadTests(unittest.TestCase):
     def test_accepts_canonical_payload(self) -> None:
         values = {
             "PACKAGE_NAME": "jp.penguin.purebase",
-            "SOURCE_REPOSITORY": "PenguinDOOM/Pure-Base",
+            "SOURCE_REPOSITORY": "Penguin-Repository/Pure-Base",
             "VERSION": VERSION,
             "TAG": VERSION,
             "COMMIT_SHA": COMMIT_SHA.upper(),
@@ -222,7 +222,7 @@ class PayloadTests(unittest.TestCase):
     def test_error_names_canonical_package_url_field(self) -> None:
         values = {
             "PACKAGE_NAME": "jp.penguin.purebase",
-            "SOURCE_REPOSITORY": "PenguinDOOM/Pure-Base",
+            "SOURCE_REPOSITORY": "Penguin-Repository/Pure-Base",
             "VERSION": VERSION,
             "TAG": VERSION,
             "COMMIT_SHA": COMMIT_SHA,
@@ -237,16 +237,16 @@ class PayloadTests(unittest.TestCase):
     def test_resolves_annotated_tag_to_commit(self) -> None:
         tag_object_sha = "d" * 40
         responses = {
-            f"https://api.github.com/repos/PenguinDOOM/Pure-Base/git/ref/tags/{VERSION}": {
+            f"https://api.github.com/repos/Penguin-Repository/Pure-Base/git/ref/tags/{VERSION}": {
                 "object": {"type": "tag", "sha": tag_object_sha}
             },
-            f"https://api.github.com/repos/PenguinDOOM/Pure-Base/git/tags/{tag_object_sha}": {
+            f"https://api.github.com/repos/Penguin-Repository/Pure-Base/git/tags/{tag_object_sha}": {
                 "object": {"type": "commit", "sha": COMMIT_SHA}
             },
         }
         self.assertEqual(
             resolve_tag_commit(
-                "PenguinDOOM/Pure-Base", VERSION, api_get=responses.__getitem__
+                "Penguin-Repository/Pure-Base", VERSION, api_get=responses.__getitem__
             ),
             COMMIT_SHA,
         )
