@@ -13,7 +13,7 @@ from vpm_common import (
     LICENSE_PATH,
     PACKAGE_NAME,
     SHA256_RE,
-    TRUSTED_SOURCE_REPOSITORIES,
+    SOURCE_REPOSITORY,
     UpdateError,
     expected_urls,
     immutable_source_url,
@@ -42,7 +42,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
 
     if package_name != PACKAGE_NAME:
         raise UpdateError(f"Unsupported packageName: {package_name!r}.")
-    if source_repository not in TRUSTED_SOURCE_REPOSITORIES:
+    if source_repository != SOURCE_REPOSITORY:
         raise UpdateError(f"Unsupported sourceRepository: {source_repository!r}.")
     parse_semver(version)
     if tag != version:
@@ -54,9 +54,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
     if not SHA256_RE.fullmatch(expected_sha256):
         raise UpdateError("sha256 must be a 64-character hexadecimal SHA-256 value.")
 
-    asset_name, trusted_package_url, trusted_release_url = expected_urls(
-        version, source_repository
-    )
+    asset_name, trusted_package_url, trusted_release_url = expected_urls(version)
     if package_url != trusted_package_url:
         raise UpdateError(
             "packageUrl does not match the immutable Pure Base release asset URL: "
@@ -71,7 +69,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
     normalized_commit_sha = commit_sha.lower()
     return {
         "package_name": PACKAGE_NAME,
-        "source_repository": source_repository,
+        "source_repository": SOURCE_REPOSITORY,
         "version": version,
         "commit_sha": normalized_commit_sha,
         "policy_commit_sha": policy_commit_sha.lower(),
@@ -80,9 +78,7 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
         "expected_sha256": expected_sha256,
         "release_url": trusted_release_url,
         "changelog_url": trusted_release_url,
-        "licenses_url": immutable_source_url(
-            normalized_commit_sha, LICENSE_PATH, source_repository
-        ),
+        "licenses_url": immutable_source_url(normalized_commit_sha, LICENSE_PATH),
     }
 
 
@@ -148,7 +144,7 @@ def verify_release_commit(
 ) -> None:
     """Confirm the released tag resolves to the dispatched source commit."""
     actual_commit = resolve_tag_commit(
-        payload["source_repository"], payload["version"], api_get=api_get
+        SOURCE_REPOSITORY, payload["version"], api_get=api_get
     )
     if actual_commit != payload["commit_sha"]:
         raise UpdateError(
