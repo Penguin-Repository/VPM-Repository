@@ -3,5 +3,34 @@
   "id": "jp.penguin.vpm",
   "url": "https://raw.githubusercontent.com/PenguinDOOM/VPM-Repository/refs/heads/master/vpm.json",
   "author": "Penguin",
-  "packages": {}
+  "packages": {
+    "jp.penguin.purebase": {
+      "versions": {
+        "0.1.0-beta.2": {
+          "name": "jp.penguin.purebase",
+          "displayName": "PureBase",
+          "version": "0.1.0-beta.2",
+          "author": {
+            "name": "Penguin"
+          },
+          "unity": "2022.3",
+          "description": "Minimal base shader for Shader-Core",
+          "vpmDependencies": {
+            "jp.lilxyzw.shadercore": "0.1.9"
+          },
+          "changelogUrl": "https://github.com/PenguinDOOM/Pure-Base/releases/tag/0.1.0-beta.2",
+          "licensesUrl": "https://github.com/PenguinDOOM/Pure-Base/blob/037feda786fe1dc324f302f13cdc89294bace620/LICENSE",
+          "license": "Apache-2.0",
+          "keywords": [
+            "Shader"
+          ],
+          "url": "https://github.com/PenguinDOOM/Pure-Base/releases/download/0.1.0-beta.2/jp.penguin.purebase-0.1.0-beta.2.zip",
+          "legacyFolders": {
+            "Assets\\PureBase": ""
+          },
+          "zipSHA256": "0706ed4c0d5610de78c9b3b4361159ca994df5de4e606996c6806da043c0e0e2"
+        }
+      }
+    }
+  }
 }
