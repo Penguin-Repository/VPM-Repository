@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any, Mapping
 
 PACKAGE_NAME = "jp.penguin.purebase"
-SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
+LEGACY_SOURCE_REPOSITORY = "PenguinDOOM/Pure-Base"
+TRUSTED_SOURCE_REPOSITORIES = frozenset((SOURCE_REPOSITORY, LEGACY_SOURCE_REPOSITORY))
 EXPECTED_LICENSE = "Apache-2.0"
 LICENSE_PATH = "LICENSE"
 VPM_PATH = Path("vpm.json")
@@ -123,7 +125,7 @@ def reject_non_finite_constant(value: str) -> None:
 
 
 def reject_duplicate_object_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    """Build one JSON object while rejecting duplicate object keys."""
+    """Build one JSON object while rejecting duplicate keys."""
     result: dict[str, Any] = {}
     for key, value in pairs:
         if key in result:
@@ -146,20 +148,31 @@ def strict_json_dumps(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
 
 
-def expected_urls(version: str) -> tuple[str, str, str]:
+def expected_urls(
+    version: str,
+    source_repository: str = SOURCE_REPOSITORY,
+) -> tuple[str, str, str]:
     """Return the trusted asset name, asset URL, and release URL."""
+    if source_repository not in TRUSTED_SOURCE_REPOSITORIES:
+        raise UpdateError(f"Unsupported sourceRepository: {source_repository!r}.")
     asset_name = f"{PACKAGE_NAME}-{version}.zip"
     package_url = (
-        f"https://github.com/{SOURCE_REPOSITORY}/releases/download/"
+        f"https://github.com/{source_repository}/releases/download/"
         f"{version}/{asset_name}"
     )
-    release_url = f"https://github.com/{SOURCE_REPOSITORY}/releases/tag/{version}"
+    release_url = f"https://github.com/{source_repository}/releases/tag/{version}"
     return asset_name, package_url, release_url
 
 
-def immutable_source_url(commit_sha: str, path: str) -> str:
+def immutable_source_url(
+    commit_sha: str,
+    path: str,
+    source_repository: str = SOURCE_REPOSITORY,
+) -> str:
     """Build a source URL pinned to an immutable commit SHA."""
-    return f"https://github.com/{SOURCE_REPOSITORY}/blob/{commit_sha}/{path}"
+    if source_repository not in TRUSTED_SOURCE_REPOSITORIES:
+        raise UpdateError(f"Unsupported sourceRepository: {source_repository!r}.")
+    return f"https://github.com/{source_repository}/blob/{commit_sha}/{path}"
 
 
 def version_key(version: str) -> SemanticVersion:
