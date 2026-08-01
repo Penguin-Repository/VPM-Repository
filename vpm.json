@@ -28,10 +28,7 @@
           "legacyFolders": {
             "Assets\\PureBase": ""
           },
-          "zipSHA256": "0706ed4c0d5610de78c9b3b4361159ca994df5de4e606996c6806da043c0e0e2",
-          "vrc-get": {
-            "yanked": "Verify end-to-end Yank/Unyank synchronization."
-          }
+          "zipSHA256": "0706ed4c0d5610de78c9b3b4361159ca994df5de4e606996c6806da043c0e0e2"
         }
       }
     }
