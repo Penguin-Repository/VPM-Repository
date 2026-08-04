@@ -80,6 +80,17 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           permission-contents: write
 
+      - name: Resolve GitHub App bot identity
+        id: app-bot
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          bot_login="${APP_SLUG}[bot]"
+          bot_id="$(gh api "users/${bot_login}" --jq '.id')"
+          echo "name=${bot_login}" >> "$GITHUB_OUTPUT"
+          echo "email=${bot_id}+${bot_login}@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
       - name: Checkout VPM repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -104,10 +115,11 @@ jobs:
       - name: Commit and push listing
         if: steps.update.outputs.changed == 'true'
         env:
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          APP_BOT_NAME: ${{ steps.app-bot.outputs.name }}
+          APP_BOT_EMAIL: ${{ steps.app-bot.outputs.email }}
         run: |
-          git config user.name "${APP_SLUG}[bot]"
-          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+          git config user.name "$APP_BOT_NAME"
+          git config user.email "$APP_BOT_EMAIL"
           git add -- vpm.json
           git commit -m "Add ${PACKAGE_NAME} ${VERSION}"
           git push origin "HEAD:master"
