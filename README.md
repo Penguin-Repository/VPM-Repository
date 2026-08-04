@@ -42,15 +42,17 @@ For each Pure Base version, generated links use:
 
 This keeps historical metadata stable even if the default branch changes later.
 
-## Required Pure Base configuration
+## Required GitHub App configuration
 
-Configure the following in `Penguin-Repository/Pure-Base`:
+Configure the following in both `Penguin-Repository/Pure-Base` and `Penguin-Repository/VPM-Repository`:
 
-- Repository variable `VPM_REPOSITORY`: `Penguin-Repository/VPM-Repository`
-- Release-environment secrets `APP_CLIENT_ID` and `APP_PRIVATE_KEY`
-- A GitHub App installation that can write contents in both repositories
+- Repository or environment secrets `APP_CLIENT_ID` and `APP_PRIVATE_KEY`
+- A GitHub App installation covering both repositories
+- GitHub App repository permission `Contents: Read and write`
 
-The receiving workflow uses its scoped `GITHUB_TOKEN` with `contents: write`; it does not need copies of the GitHub App private key.
+Configure repository variable `VPM_REPOSITORY` in `Penguin-Repository/Pure-Base` as `Penguin-Repository/VPM-Repository`.
+
+The receiving workflows create a repository-scoped installation token with `contents: write`, use it for checkout and direct pushes to `master`, and commit as the GitHub App bot. The workflow-level `GITHUB_TOKEN` remains read-only and is used only for validation requests.
 
 ## Dispatch payload
 
