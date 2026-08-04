@@ -46,13 +46,13 @@ This keeps historical metadata stable even if the default branch changes later.
 
 Configure the following in both `Penguin-Repository/Pure-Base` and `Penguin-Repository/VPM-Repository`:
 
-- Repository or environment secrets `APP_CLIENT_ID` and `APP_PRIVATE_KEY`
+- Repository secrets `APP_CLIENT_ID` and `APP_PRIVATE_KEY`
 - A GitHub App installation covering both repositories
 - GitHub App repository permission `Contents: Read and write`
 
 Configure repository variable `VPM_REPOSITORY` in `Penguin-Repository/Pure-Base` as `Penguin-Repository/VPM-Repository`.
 
-The receiving workflows create a repository-scoped installation token with `contents: write`, use it for checkout and direct pushes to `master`, and commit as the GitHub App bot. The workflow-level `GITHUB_TOKEN` remains read-only and is used only for validation requests.
+The receiving workflows create a repository-scoped installation token with `contents: write`, use it for checkout and direct pushes to `master`, and commit as the GitHub App bot using its ID-based GitHub noreply address. The workflow-level `GITHUB_TOKEN` remains read-only and is used only for validation requests.
 
 ## Dispatch payload
 
