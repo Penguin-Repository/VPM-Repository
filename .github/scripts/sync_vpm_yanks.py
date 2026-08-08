@@ -7,7 +7,13 @@ import os
 import sys
 from typing import Any
 
-from vpm_common import PACKAGE_NAME, SOURCE_REPOSITORY, UpdateError, VPM_PATH, required_env
+from vpm_common import (
+    PACKAGE_NAME,
+    SOURCE_REPOSITORY,
+    VPM_PATH,
+    UpdateError,
+    required_env,
+)
 from vpm_listing import apply_yank_policy, load_listing, write_listing
 from vpm_policy import fetch_yank_policy_snapshot
 

@@ -146,7 +146,9 @@ def write_listing(path: Path, listing: dict[str, Any]) -> None:
     try:
         serialized = strict_json_dumps(listing)
     except (TypeError, ValueError) as error:
-        raise UpdateError(f"Refusing to write non-standard JSON to {path}: {error}") from error
+        raise UpdateError(
+            f"Refusing to write non-standard JSON to {path}: {error}"
+        ) from error
 
     temporary_path = path.with_suffix(path.suffix + ".tmp")
     temporary_path.write_text(serialized, encoding="utf-8", newline="\n")

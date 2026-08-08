@@ -8,7 +8,7 @@ import urllib.request
 import zipfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
-from typing import Any, BinaryIO
+from typing import Any, IO
 
 from vpm_common import (
     EXPECTED_LICENSE,
@@ -32,10 +32,15 @@ def download_archive(url: str, destination: Path) -> str:
     )
     digest = hashlib.sha256()
     total = 0
-    with urllib.request.urlopen(request, timeout=60) as response, destination.open("wb") as output:
+    with (
+        urllib.request.urlopen(request, timeout=60) as response,
+        destination.open("wb") as output,
+    ):
         final_url = response.geturl()
         if not final_url.startswith("https://"):
-            raise UpdateError(f"Release asset redirected to a non-HTTPS URL: {final_url!r}.")
+            raise UpdateError(
+                f"Release asset redirected to a non-HTTPS URL: {final_url!r}."
+            )
         while chunk := response.read(1024 * 1024):
             total += len(chunk)
             if total > MAX_ARCHIVE_BYTES:
@@ -69,7 +74,7 @@ def is_unsafe_zip_path(name: str) -> bool:
     )
 
 
-def read_limited(stream: BinaryIO, limit: int) -> bytes:
+def read_limited(stream: IO[bytes], limit: int) -> bytes:
     """Read at most limit bytes and fail before retaining oversized content."""
     chunks: list[bytes] = []
     remaining = limit + 1
@@ -81,7 +86,9 @@ def read_limited(stream: BinaryIO, limit: int) -> bytes:
         remaining -= len(chunk)
     data = b"".join(chunks)
     if len(data) > limit:
-        raise UpdateError("package.json exceeds the 1 MiB safety limit after decompression.")
+        raise UpdateError(
+            "package.json exceeds the 1 MiB safety limit after decompression."
+        )
     return data
 
 
@@ -90,7 +97,9 @@ def validate_required_text_fields(manifest: Mapping[str, Any]) -> None:
     for field in REQUIRED_TEXT_FIELDS:
         value = manifest.get(field)
         if not isinstance(value, str) or not value.strip():
-            raise UpdateError(f"package.json field {field!r} must be a non-empty string.")
+            raise UpdateError(
+                f"package.json field {field!r} must be a non-empty string."
+            )
 
 
 def validate_optional_url(manifest: dict[str, Any], field: str, expected: str) -> None:
@@ -142,7 +151,9 @@ def load_manifest(
     try:
         manifest = strict_json_loads(raw_manifest.decode("utf-8-sig"))
     except (UnicodeDecodeError, ValueError) as error:
-        raise UpdateError(f"package.json is not valid strict UTF-8 JSON: {error}") from error
+        raise UpdateError(
+            f"package.json is not valid strict UTF-8 JSON: {error}"
+        ) from error
 
     if not isinstance(manifest, dict):
         raise UpdateError("package.json must contain a JSON object.")
@@ -163,7 +174,9 @@ def load_manifest(
     validate_required_text_fields(manifest)
     embedded_url = manifest.get("url")
     if embedded_url not in (None, "", payload["package_url"]):
-        raise UpdateError(f"package.json contains an unexpected download URL: {embedded_url!r}.")
+        raise UpdateError(
+            f"package.json contains an unexpected download URL: {embedded_url!r}."
+        )
 
     validate_optional_url(manifest, "changelogUrl", payload["changelog_url"])
     validate_optional_url(manifest, "licensesUrl", payload["licenses_url"])

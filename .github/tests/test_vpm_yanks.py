@@ -17,7 +17,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 WORKFLOWS = Path(__file__).resolve().parents[1] / "workflows"
 sys.path.insert(0, str(SCRIPTS))
 
-from vpm_common import UpdateError  # noqa: E402
+from vpm_common import UpdateError
 
 PACKAGE_NAME = "jp.penguin.purebase"
 SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
@@ -72,9 +72,7 @@ def listing_with_versions(*versions: str) -> dict[str, object]:
     return {
         "packages": {
             PACKAGE_NAME: {
-                "versions": {
-                    version: version_metadata(version) for version in versions
-                }
+                "versions": {version: version_metadata(version) for version in versions}
             }
         }
     }
@@ -87,7 +85,10 @@ class YankPolicySchemaTests(unittest.TestCase):
         raw = policy_document_of_size(64 * 1024)
         self.assertEqual(MAX_YANK_POLICY_BYTES, 64 * 1024)
         self.assertEqual(len(raw), MAX_YANK_POLICY_BYTES)
-        self.assertEqual(load_yank_policy(raw)["versions"], {VERSION: "x" * (len(raw) - len(policy_document({VERSION: ""})))})
+        self.assertEqual(
+            load_yank_policy(raw)["versions"],
+            {VERSION: "x" * (len(raw) - len(policy_document({VERSION: ""})))},
+        )
 
     def test_rejects_policy_larger_than_64_kib(self) -> None:
         from vpm_policy import MAX_YANK_POLICY_BYTES, load_yank_policy
@@ -118,12 +119,27 @@ class YankPolicySchemaTests(unittest.TestCase):
         from vpm_policy import load_yank_policy
 
         invalid_documents = (
-            ("utf8_bom", b'\xef\xbb\xbf{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}}'),
-            ("invalid_utf8", b'\xff'),
-            ("trailing_content", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}} trailing'),
-            ("trailing_whitespace", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}}\n'),
-            ("nan_constant", b'{"schemaVersion":NaN,"package":"jp.penguin.purebase","versions":{}}'),
-            ("infinity_constant", b'{"schemaVersion":Infinity,"package":"jp.penguin.purebase","versions":{}}'),
+            (
+                "utf8_bom",
+                b'\xef\xbb\xbf{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}}',
+            ),
+            ("invalid_utf8", b"\xff"),
+            (
+                "trailing_content",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}} trailing',
+            ),
+            (
+                "trailing_whitespace",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{}}\n',
+            ),
+            (
+                "nan_constant",
+                b'{"schemaVersion":NaN,"package":"jp.penguin.purebase","versions":{}}',
+            ),
+            (
+                "infinity_constant",
+                b'{"schemaVersion":Infinity,"package":"jp.penguin.purebase","versions":{}}',
+            ),
         )
         for contract_id, raw in invalid_documents:
             with self.subTest(contract_id=contract_id), self.assertRaises(UpdateError):
@@ -151,15 +167,42 @@ class YankPolicySchemaTests(unittest.TestCase):
         from vpm_policy import load_yank_policy
 
         invalid_documents = (
-            ("boolean_schema_version", b'{"schemaVersion":true,"package":"jp.penguin.purebase","versions":{}}'),
-            ("string_schema_version", b'{"schemaVersion":"1","package":"jp.penguin.purebase","versions":{}}'),
-            ("wrong_package", b'{"schemaVersion":1,"package":"other.package","versions":{}}'),
-            ("unexpected_top_level_key", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{},"extra":true}'),
-            ("non_object_versions", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":[]}'),
-            ("invalid_semver_version_key", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"v0.1.0":"reason"}}'),
-            ("empty_reason", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":""}}'),
-            ("whitespace_reason", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":"   "}}'),
-            ("non_string_reason", b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":true}}'),
+            (
+                "boolean_schema_version",
+                b'{"schemaVersion":true,"package":"jp.penguin.purebase","versions":{}}',
+            ),
+            (
+                "string_schema_version",
+                b'{"schemaVersion":"1","package":"jp.penguin.purebase","versions":{}}',
+            ),
+            (
+                "wrong_package",
+                b'{"schemaVersion":1,"package":"other.package","versions":{}}',
+            ),
+            (
+                "unexpected_top_level_key",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{},"extra":true}',
+            ),
+            (
+                "non_object_versions",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":[]}',
+            ),
+            (
+                "invalid_semver_version_key",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"v0.1.0":"reason"}}',
+            ),
+            (
+                "empty_reason",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":""}}',
+            ),
+            (
+                "whitespace_reason",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":"   "}}',
+            ),
+            (
+                "non_string_reason",
+                b'{"schemaVersion":1,"package":"jp.penguin.purebase","versions":{"0.1.0":true}}',
+            ),
         )
         for contract_id, raw in invalid_documents:
             with self.subTest(contract_id=contract_id), self.assertRaises(UpdateError):
@@ -167,7 +210,9 @@ class YankPolicySchemaTests(unittest.TestCase):
 
 
 class YankPolicyFetchTests(unittest.TestCase):
-    def assert_sync_rejection_leaves_listing_unchanged(self, error: UpdateError) -> None:
+    def assert_sync_rejection_leaves_listing_unchanged(
+        self, error: UpdateError
+    ) -> None:
         """Assert a rejected policy sync never persists a candidate listing."""
         import sync_vpm_yanks
 
@@ -188,9 +233,9 @@ class YankPolicyFetchTests(unittest.TestCase):
                     "fetch_yank_policy_snapshot",
                     side_effect=error,
                 ),
+                self.assertRaises(UpdateError),
             ):
-                with self.assertRaises(UpdateError):
-                    sync_vpm_yanks.process_yank_sync()
+                sync_vpm_yanks.process_yank_sync()
 
             self.assertEqual(listing_path.read_text(encoding="utf-8"), original)
 
@@ -234,7 +279,9 @@ class YankPolicyFetchTests(unittest.TestCase):
 
         for content in invalid_contents:
             with self.subTest(content=content), self.assertRaises(UpdateError):
-                decode_policy_content({"content": content, "encoding": "base64"}, COMMIT_SHA)
+                decode_policy_content(
+                    {"content": content, "encoding": "base64"}, COMMIT_SHA
+                )
 
     def test_rejects_invalid_policy_commit_before_github_api_access(self) -> None:
         from vpm_policy import fetch_yank_policy_snapshot
@@ -266,15 +313,23 @@ class YankPolicyFetchTests(unittest.TestCase):
             if "/compare/" in url:
                 return {"status": "ahead"}
             if f"ref={COMMIT_SHA}" in url:
-                return {"content": base64.b64encode(requested).decode("ascii"), "encoding": "base64"}
+                return {
+                    "content": base64.b64encode(requested).decode("ascii"),
+                    "encoding": "base64",
+                }
             if "ref=master" in url:
-                return {"content": base64.b64encode(current).decode("ascii"), "encoding": "base64"}
+                return {
+                    "content": base64.b64encode(current).decode("ascii"),
+                    "encoding": "base64",
+                }
             return {"sha": CURRENT_COMMIT_SHA}
 
         with self.assertRaises(UpdateError):
             fetch_yank_policy_snapshot(COMMIT_SHA, api_get=api_get)
 
-    def test_accepts_old_reachable_snapshot_when_current_policy_content_is_identical(self) -> None:
+    def test_accepts_old_reachable_snapshot_when_current_policy_content_is_identical(
+        self,
+    ) -> None:
         from vpm_policy import fetch_yank_policy_snapshot
 
         raw = policy_document({VERSION: "same desired state"})
@@ -283,13 +338,18 @@ class YankPolicyFetchTests(unittest.TestCase):
             if "/compare/" in url:
                 return {"status": "ahead"}
             if f"ref={COMMIT_SHA}" in url or "ref=master" in url:
-                return {"content": base64.b64encode(raw).decode("ascii"), "encoding": "base64"}
+                return {
+                    "content": base64.b64encode(raw).decode("ascii"),
+                    "encoding": "base64",
+                }
             return {"sha": CURRENT_COMMIT_SHA}
 
         policy = fetch_yank_policy_snapshot(COMMIT_SHA, api_get=api_get)
         self.assertEqual(policy["versions"], {VERSION: "same desired state"})
 
-    def test_stale_policy_snapshot_rejection_leaves_listing_byte_identical(self) -> None:
+    def test_stale_policy_snapshot_rejection_leaves_listing_byte_identical(
+        self,
+    ) -> None:
         self.assert_sync_rejection_leaves_listing_unchanged(
             UpdateError("Policy snapshot no longer matches current master policy")
         )
@@ -373,22 +433,32 @@ class YankApplicationTests(unittest.TestCase):
 
         listing = listing_with_versions(VERSION)
         before = copy.deepcopy(listing)
-        policy = {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {VERSION: "new reason"}}
+        policy = {
+            "schemaVersion": 1,
+            "package": PACKAGE_NAME,
+            "versions": {VERSION: "new reason"},
+        }
 
         self.assertTrue(apply_yank_policy(listing, policy))
 
         expected = copy.deepcopy(before)
-        expected["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"]["yanked"] = "new reason"
+        expected["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"]["yanked"] = (
+            "new reason"
+        )
         self.assertEqual(listing, expected)
 
     def test_unyank_removes_only_yanked_and_keeps_other_vrc_get_fields(self) -> None:
         from vpm_listing import apply_yank_policy
 
         listing = listing_with_versions(VERSION)
-        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"][
-            "yanked"
-        ] = "old reason"
-        self.assertTrue(apply_yank_policy(listing, {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {}}))
+        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"]["yanked"] = (
+            "old reason"
+        )
+        self.assertTrue(
+            apply_yank_policy(
+                listing, {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {}}
+            )
+        )
         self.assertEqual(
             listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"],
             {"note": "retain me"},
@@ -398,23 +468,37 @@ class YankApplicationTests(unittest.TestCase):
         from vpm_listing import apply_yank_policy
 
         listing = listing_with_versions(VERSION)
-        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"] = {"yanked": "old reason"}
+        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"] = {
+            "yanked": "old reason"
+        }
 
-        self.assertTrue(apply_yank_policy(listing, {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {}}))
+        self.assertTrue(
+            apply_yank_policy(
+                listing, {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {}}
+            )
+        )
 
-        self.assertNotIn("vrc-get", listing["packages"][PACKAGE_NAME]["versions"][VERSION])
+        self.assertNotIn(
+            "vrc-get", listing["packages"][PACKAGE_NAME]["versions"][VERSION]
+        )
 
     def test_rejects_non_object_vrc_get_without_mutating_listing(self) -> None:
         from vpm_listing import apply_yank_policy
 
         listing = listing_with_versions(VERSION)
-        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"] = "not an object"
+        listing["packages"][PACKAGE_NAME]["versions"][VERSION]["vrc-get"] = (
+            "not an object"
+        )
         before = copy.deepcopy(listing)
 
         with self.assertRaises(UpdateError):
             apply_yank_policy(
                 listing,
-                {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {VERSION: "reason"}},
+                {
+                    "schemaVersion": 1,
+                    "package": PACKAGE_NAME,
+                    "versions": {VERSION: "reason"},
+                },
             )
 
         self.assertEqual(listing, before)
@@ -439,7 +523,11 @@ class YankApplicationTests(unittest.TestCase):
         from vpm_listing import apply_yank_policy
 
         listing = listing_with_versions(VERSION, "0.1.0")
-        policy = {"schemaVersion": 1, "package": PACKAGE_NAME, "versions": {VERSION: "reason"}}
+        policy = {
+            "schemaVersion": 1,
+            "package": PACKAGE_NAME,
+            "versions": {VERSION: "reason"},
+        }
 
         self.assertTrue(apply_yank_policy(listing, policy))
         before = copy.deepcopy(listing)
@@ -448,7 +536,9 @@ class YankApplicationTests(unittest.TestCase):
 
 
 class YankWorkflowContractTests(unittest.TestCase):
-    def test_receiver_workflow_runs_yank_contract_suite_on_relevant_changes(self) -> None:
+    def test_receiver_workflow_runs_yank_contract_suite_on_relevant_changes(
+        self,
+    ) -> None:
         workflow = (WORKFLOWS / "receiver-tests.yml").read_text(encoding="utf-8")
 
         self.assertIn(".github/scripts/**", workflow)
@@ -459,7 +549,9 @@ class YankWorkflowContractTests(unittest.TestCase):
     def assert_workflow_uses_shared_update_serialization(self, filename: str) -> None:
         """Assert one named VPM writer serializes updates with the shared concurrency contract."""
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
-        concurrency = "concurrency:\n  group: vpm-repository-update\n  cancel-in-progress: false"
+        concurrency = (
+            "concurrency:\n  group: vpm-repository-update\n  cancel-in-progress: false"
+        )
 
         self.assertIn(concurrency, workflow)
 
@@ -474,16 +566,20 @@ class YankWorkflowContractTests(unittest.TestCase):
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
         self.assertIn("ref: master", workflow)
         self.assertIn('git push origin "HEAD:master"', workflow)
-        self.assertIn('github.event.repository.default_branch != \'master\'', workflow)
+        self.assertIn("github.event.repository.default_branch != 'master'", workflow)
         self.assertIn("contents: write", workflow)
 
-    def test_update_workflow_is_fixed_to_master_and_rejects_other_defaults(self) -> None:
+    def test_update_workflow_is_fixed_to_master_and_rejects_other_defaults(
+        self,
+    ) -> None:
         self.assert_mutating_workflow_is_fixed_to_master("update-vpm.yml")
 
     def test_yank_workflow_is_fixed_to_master_and_rejects_other_defaults(self) -> None:
         self.assert_mutating_workflow_is_fixed_to_master("sync-vpm-yanks.yml")
 
-    def test_update_workflow_accepts_only_release_event_and_manual_policy_commit(self) -> None:
+    def test_update_workflow_accepts_only_release_event_and_manual_policy_commit(
+        self,
+    ) -> None:
         workflow = (WORKFLOWS / "update-vpm.yml").read_text(encoding="utf-8")
 
         self.assertIn("types: [update-vpm]", workflow)
@@ -492,7 +588,9 @@ class YankWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("policy_path", workflow)
         self.assertNotIn("policyPath", workflow)
 
-    def test_yank_workflow_accepts_only_yank_event_and_manual_fixed_source_inputs(self) -> None:
+    def test_yank_workflow_accepts_only_yank_event_and_manual_fixed_source_inputs(
+        self,
+    ) -> None:
         workflow = (WORKFLOWS / "sync-vpm-yanks.yml").read_text(encoding="utf-8")
 
         self.assertIn("types: [sync-vpm-yanks]", workflow)

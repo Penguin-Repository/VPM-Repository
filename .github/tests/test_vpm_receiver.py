@@ -16,20 +16,29 @@ from unittest.mock import patch
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from vpm_archive import (  # noqa: E402
+from vpm_archive import (
     is_unsafe_zip_path,
     load_manifest,
     read_limited,
     verify_archive_sha256,
 )
-from vpm_common import (  # noqa: E402
+from vpm_common import (
     MAX_PACKAGE_JSON_BYTES,
     UpdateError,
     strict_json_dumps,
     strict_json_loads,
 )
-from vpm_listing import apply_yank_policy, load_listing, update_listing, write_listing  # noqa: E402
-from vpm_payload import resolve_tag_commit, validate_payload, verify_release_commit  # noqa: E402
+from vpm_listing import (
+    apply_yank_policy,
+    load_listing,
+    update_listing,
+    write_listing,
+)
+from vpm_payload import (
+    resolve_tag_commit,
+    validate_payload,
+    verify_release_commit,
+)
 
 COMMIT_SHA = "a" * 40
 OTHER_COMMIT_SHA = "b" * 40
@@ -51,7 +60,9 @@ def valid_payload(
         "https://github.com/Penguin-Repository/Pure-Base/releases/download/"
         f"{version}/{asset_name}"
     )
-    release_url = f"https://github.com/Penguin-Repository/Pure-Base/releases/tag/{version}"
+    release_url = (
+        f"https://github.com/Penguin-Repository/Pure-Base/releases/tag/{version}"
+    )
     return {
         "package_name": "jp.penguin.purebase",
         "source_repository": "Penguin-Repository/Pure-Base",
@@ -64,8 +75,7 @@ def valid_payload(
         "release_url": release_url,
         "changelog_url": release_url,
         "licenses_url": (
-            "https://github.com/Penguin-Repository/Pure-Base/blob/"
-            f"{COMMIT_SHA}/LICENSE"
+            f"https://github.com/Penguin-Repository/Pure-Base/blob/{COMMIT_SHA}/LICENSE"
         ),
     }
 
@@ -216,7 +226,9 @@ class PayloadTests(unittest.TestCase):
         validated = validate_payload(values)
 
         self.assertEqual(validated["version"], prerelease)
-        self.assertEqual(validated["asset_name"], f"jp.penguin.purebase-{prerelease}.zip")
+        self.assertEqual(
+            validated["asset_name"], f"jp.penguin.purebase-{prerelease}.zip"
+        )
         self.assertEqual(validated["policy_commit_sha"], OTHER_COMMIT_SHA)
 
     def test_error_names_canonical_package_url_field(self) -> None:
@@ -296,7 +308,10 @@ class ArchiveTests(unittest.TestCase):
 
     def test_load_manifest_rejects_missing_required_vpm_text(self) -> None:
         for field in ("displayName", "description", "unity"):
-            with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary_directory:
+            with (
+                self.subTest(field=field),
+                tempfile.TemporaryDirectory() as temporary_directory,
+            ):
                 archive_path = Path(temporary_directory) / "package.zip"
                 manifest = valid_manifest()
                 manifest[field] = " "
@@ -337,9 +352,7 @@ class ListingTests(unittest.TestCase):
         manifest = valid_manifest()
         listing: dict[str, object] = {
             "packages": {
-                "jp.penguin.purebase": {
-                    "versions": {VERSION: manifest.copy()}
-                }
+                "jp.penguin.purebase": {"versions": {VERSION: manifest.copy()}}
             }
         }
         changed_manifest = manifest.copy()
@@ -373,9 +386,7 @@ class ListingTests(unittest.TestCase):
             with self.subTest(invalid_value=invalid_value):
                 listing: dict[str, object] = {
                     "packages": {
-                        "jp.penguin.purebase": {
-                            "versions": {VERSION: invalid_value}
-                        }
+                        "jp.penguin.purebase": {"versions": {VERSION: invalid_value}}
                     }
                 }
                 before = copy.deepcopy(listing)
@@ -394,7 +405,9 @@ class ListingTests(unittest.TestCase):
                 }
                 before = copy.deepcopy(listing)
 
-                with self.assertRaisesRegex(UpdateError, "Package entry .* is not an object"):
+                with self.assertRaisesRegex(
+                    UpdateError, "Package entry .* is not an object"
+                ):
                     update_listing(listing, manifest)
 
                 self.assertEqual(listing, before)
@@ -444,12 +457,16 @@ class UpdateTransactionTests(unittest.TestCase):
             listing_path.write_text(original, encoding="utf-8")
             with (
                 patch.object(update_vpm, "VPM_PATH", listing_path),
-                patch.object(update_vpm, "validate_payload", return_value=valid_payload()),
+                patch.object(
+                    update_vpm, "validate_payload", return_value=valid_payload()
+                ),
                 patch.object(update_vpm, "verify_release_commit"),
                 patch.object(
                     update_vpm,
                     "fetch_yank_policy_snapshot",
-                    side_effect=UpdateError("Policy snapshot no longer matches current master policy"),
+                    side_effect=UpdateError(
+                        "Policy snapshot no longer matches current master policy"
+                    ),
                 ),
                 patch.object(
                     update_vpm,
@@ -461,9 +478,9 @@ class UpdateTransactionTests(unittest.TestCase):
                     "load_listing",
                     side_effect=AssertionError("Listing must not be loaded."),
                 ),
+                self.assertRaises(UpdateError),
             ):
-                with self.assertRaises(UpdateError):
-                    update_vpm.process_update()
+                update_vpm.process_update()
 
             self.assertEqual(listing_path.read_text(encoding="utf-8"), original)
 
