@@ -31,19 +31,27 @@ def load_yank_policy(raw: bytes) -> dict[str, Any]:
     try:
         text = raw.decode("utf-8")
     except (UnicodeDecodeError, ValueError) as error:
-        raise UpdateError(f"Yank policy is not valid strict UTF-8 JSON: {error}") from error
+        raise UpdateError(
+            f"Yank policy is not valid strict UTF-8 JSON: {error}"
+        ) from error
     if text != text.rstrip(" \t\r\n"):
-        raise UpdateError("Yank policy must not contain trailing bytes after its JSON document.")
+        raise UpdateError(
+            "Yank policy must not contain trailing bytes after its JSON document."
+        )
     try:
         policy = strict_json_loads(text)
     except ValueError as error:
-        raise UpdateError(f"Yank policy is not valid strict UTF-8 JSON: {error}") from error
+        raise UpdateError(
+            f"Yank policy is not valid strict UTF-8 JSON: {error}"
+        ) from error
     if not isinstance(policy, dict) or set(policy) != {
         "schemaVersion",
         "package",
         "versions",
     }:
-        raise UpdateError("Yank policy must contain exactly schemaVersion, package, and versions.")
+        raise UpdateError(
+            "Yank policy must contain exactly schemaVersion, package, and versions."
+        )
     if policy["schemaVersion"] != 1 or isinstance(policy["schemaVersion"], bool):
         raise UpdateError("Yank policy schemaVersion must be integer 1.")
     if policy["package"] != PACKAGE_NAME:
@@ -54,7 +62,9 @@ def load_yank_policy(raw: bytes) -> dict[str, Any]:
     for version, reason in versions.items():
         parse_semver(version)
         if not isinstance(reason, str) or not reason.strip():
-            raise UpdateError(f"Yank reason for {version!r} must be a non-empty string.")
+            raise UpdateError(
+                f"Yank reason for {version!r} must be a non-empty string."
+            )
     return policy
 
 
@@ -67,7 +77,9 @@ def decode_policy_content(response: Mapping[str, Any], ref: str) -> bytes:
         encoded_content = content.replace("\r", "").replace("\n", "")
         return base64.b64decode(encoded_content.encode("ascii"), validate=True)
     except (UnicodeEncodeError, ValueError) as error:
-        raise UpdateError(f"GitHub API returned invalid base64 yank policy content for {ref}.") from error
+        raise UpdateError(
+            f"GitHub API returned invalid base64 yank policy content for {ref}."
+        ) from error
 
 
 def fetch_yank_policy_snapshot(
@@ -76,7 +88,9 @@ def fetch_yank_policy_snapshot(
 ) -> dict[str, Any]:
     """Return a reachable immutable policy only when it matches master exactly."""
     if not COMMIT_RE.fullmatch(policy_commit_sha):
-        raise UpdateError("policyCommitSha must be a 40-character hexadecimal Git commit SHA.")
+        raise UpdateError(
+            "policyCommitSha must be a 40-character hexadecimal Git commit SHA."
+        )
     policy_commit_sha = policy_commit_sha.lower()
     repository_url = f"{GITHUB_API_ROOT}/repos/{SOURCE_REPOSITORY}"
     comparison = api_get(

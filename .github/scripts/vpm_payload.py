@@ -48,9 +48,13 @@ def validate_payload(values: Mapping[str, str] | None = None) -> dict[str, str]:
     if tag != version:
         raise UpdateError(f"tag {tag!r} does not match version {version!r}.")
     if not COMMIT_RE.fullmatch(commit_sha):
-        raise UpdateError("commitSha must be a 40-character hexadecimal Git commit SHA.")
+        raise UpdateError(
+            "commitSha must be a 40-character hexadecimal Git commit SHA."
+        )
     if not COMMIT_RE.fullmatch(policy_commit_sha):
-        raise UpdateError("policyCommitSha must be a 40-character hexadecimal Git commit SHA.")
+        raise UpdateError(
+            "policyCommitSha must be a 40-character hexadecimal Git commit SHA."
+        )
     if not SHA256_RE.fullmatch(expected_sha256):
         raise UpdateError("sha256 must be a 64-character hexadecimal SHA-256 value.")
 
@@ -103,7 +107,9 @@ def github_api_get(url: str) -> dict[str, Any]:
     try:
         result = strict_json_loads(body)
     except (UnicodeDecodeError, ValueError) as error:
-        raise UpdateError(f"GitHub API returned invalid JSON for {url}: {error}") from error
+        raise UpdateError(
+            f"GitHub API returned invalid JSON for {url}: {error}"
+        ) from error
     if not isinstance(result, dict):
         raise UpdateError(f"GitHub API returned a non-object response for {url}.")
     return result
@@ -116,7 +122,9 @@ def resolve_tag_commit(
 ) -> str:
     """Resolve a lightweight or annotated Git tag to its commit SHA."""
     encoded_tag = urllib.parse.quote(tag, safe="")
-    reference = api_get(f"{GITHUB_API_ROOT}/repos/{repository}/git/ref/tags/{encoded_tag}")
+    reference = api_get(
+        f"{GITHUB_API_ROOT}/repos/{repository}/git/ref/tags/{encoded_tag}"
+    )
     target = reference.get("object")
 
     for _ in range(MAX_TAG_DEREFERENCE_DEPTH):
@@ -129,7 +137,9 @@ def resolve_tag_commit(
         if object_type == "commit":
             return object_sha.lower()
         if object_type != "tag":
-            raise UpdateError(f"Tag {tag!r} resolves to unsupported object type {object_type!r}.")
+            raise UpdateError(
+                f"Tag {tag!r} resolves to unsupported object type {object_type!r}."
+            )
         annotated_tag = api_get(
             f"{GITHUB_API_ROOT}/repos/{repository}/git/tags/{object_sha}"
         )

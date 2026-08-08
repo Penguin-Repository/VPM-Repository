@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 from vpm_archive import download_archive, load_manifest, verify_archive_sha256
-from vpm_common import UpdateError, VPM_PATH
+from vpm_common import VPM_PATH, UpdateError
 from vpm_listing import apply_yank_policy, load_listing, update_listing, write_listing
 from vpm_payload import validate_payload, verify_release_commit
 from vpm_policy import fetch_yank_policy_snapshot

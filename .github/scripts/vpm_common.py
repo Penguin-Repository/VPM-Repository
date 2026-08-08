@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections.abc import Mapping
 from functools import total_ordering
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 PACKAGE_NAME = "jp.penguin.purebase"
 SOURCE_REPOSITORY = "Penguin-Repository/Pure-Base"
@@ -66,7 +67,9 @@ class SemanticVersion:
 def parse_semver(version: str) -> SemanticVersion:
     """Parse a strict ASCII SemVer 2 core and prerelease value."""
     if not isinstance(version, str) or not version.isascii():
-        raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+        raise UpdateError(
+            f"Repository contains an unsupported version key: {version!r}."
+        )
 
     core_text, separator, prerelease_text = version.partition("-")
     core_identifiers = core_text.split(".")
@@ -75,15 +78,23 @@ def parse_semver(version: str) -> SemanticVersion:
         or (len(identifier) > 1 and identifier.startswith("0"))
         for identifier in core_identifiers
     ):
-        raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+        raise UpdateError(
+            f"Repository contains an unsupported version key: {version!r}."
+        )
 
     prerelease: list[tuple[int, int | str]] = []
     if separator:
         if not prerelease_text:
-            raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+            raise UpdateError(
+                f"Repository contains an unsupported version key: {version!r}."
+            )
         for identifier in prerelease_text.split("."):
-            if not identifier or not all(character.isalnum() or character == "-" for character in identifier):
-                raise UpdateError(f"Repository contains an unsupported version key: {version!r}.")
+            if not identifier or not all(
+                character.isalnum() or character == "-" for character in identifier
+            ):
+                raise UpdateError(
+                    f"Repository contains an unsupported version key: {version!r}."
+                )
             if identifier.isdecimal():
                 if len(identifier) > 1 and identifier.startswith("0"):
                     raise UpdateError(
