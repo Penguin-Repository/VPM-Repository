@@ -8,7 +8,7 @@ import urllib.request
 import zipfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
-from typing import Any, BinaryIO, IO
+from typing import Any, BinaryIO
 
 from vpm_common import (
     EXPECTED_LICENSE,
