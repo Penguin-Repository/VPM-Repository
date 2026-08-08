@@ -8,7 +8,7 @@ import urllib.request
 import zipfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
-from typing import Any, BinaryIO
+from typing import Any, IO
 
 from vpm_common import (
     EXPECTED_LICENSE,
@@ -74,7 +74,7 @@ def is_unsafe_zip_path(name: str) -> bool:
     )
 
 
-def read_limited(stream: BinaryIO, limit: int) -> bytes:
+def read_limited(stream: IO[bytes], limit: int) -> bytes:
     """Read at most limit bytes and fail before retaining oversized content."""
     chunks: list[bytes] = []
     remaining = limit + 1
