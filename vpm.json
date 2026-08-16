@@ -6,6 +6,30 @@
   "packages": {
     "jp.penguin.purebase": {
       "versions": {
+        "0.2.0-beta.2": {
+          "name": "jp.penguin.purebase",
+          "displayName": "PureBase",
+          "version": "0.2.0-beta.2",
+          "author": {
+            "name": "Penguin"
+          },
+          "unity": "2022.3",
+          "description": "Minimal base shader for Shader-Core",
+          "vpmDependencies": {
+            "jp.lilxyzw.shadercore": "0.1.9"
+          },
+          "license": "Apache-2.0",
+          "keywords": [
+            "Shader"
+          ],
+          "url": "https://github.com/Penguin-Repository/Pure-Base/releases/download/0.2.0-beta.2/jp.penguin.purebase-0.2.0-beta.2.zip",
+          "legacyFolders": {
+            "Assets\\PureBase": ""
+          },
+          "changelogUrl": "https://github.com/Penguin-Repository/Pure-Base/releases/tag/0.2.0-beta.2",
+          "licensesUrl": "https://github.com/Penguin-Repository/Pure-Base/blob/26cb94ac4eb4f88f594df8cf6de509840822379c/LICENSE",
+          "zipSHA256": "6cb1037582abd0a4325fafb08c67dee857af0083997a298b45b2f3483c501b3e"
+        },
         "0.2.0-beta.1": {
           "name": "jp.penguin.purebase",
           "displayName": "PureBase",
